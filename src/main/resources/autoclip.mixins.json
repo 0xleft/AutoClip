@@ -6,7 +6,10 @@
   "mixins": [
   ],
   "client": [
-    "PlayerKilledByEntityMixin"
+    "EntityHitByEntityMixin",
+    "EntityKilledByEntityMixin",
+    "PlayerBlockPlaceMixin",
+    "ScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
