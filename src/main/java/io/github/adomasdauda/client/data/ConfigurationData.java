@@ -6,5 +6,5 @@ public class ConfigurationData {
     public static boolean enableKillClip = true;
     public static boolean enableComboClip = true;
     public static int comboLengthForClip = 3;
-    public static boolean debug = true;
+    public static boolean debug = false;
 }
