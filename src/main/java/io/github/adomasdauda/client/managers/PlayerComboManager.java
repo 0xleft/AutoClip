@@ -1,24 +1,22 @@
 package io.github.adomasdauda.client.managers;
 
-import io.github.adomasdauda.client.objects.Combo;
-import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
+import io.github.adomasdauda.client.AutoClipClient;
+import io.github.adomasdauda.client.data.ConfigurationData;
+import io.github.adomasdauda.client.interfaces.EntityHitByEntityCallback;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
-public class PlayerComboManager implements AttackEntityCallback {
+public class PlayerComboManager implements EntityHitByEntityCallback {
 
     private static PlayerComboManager instance = new PlayerComboManager();
+    private static final HashMap<Entity, Integer> currentCombos = new HashMap<>();
+
 
     public static PlayerComboManager getInstance() {
         if (instance == null) {
@@ -28,67 +26,45 @@ public class PlayerComboManager implements AttackEntityCallback {
         return instance;
     }
 
-    private final List<Combo> currentCombos = new ArrayList<>();
-
     @Override
-    public ActionResult interact(PlayerEntity player, World world, Hand hand, Entity entity, @Nullable EntityHitResult hitResult) {
+    public ActionResult onHit(LivingEntity entity, Entity killer) {
 
-        if (!(entity instanceof LivingEntity livingEntity)) {
+        if (!(killer instanceof PlayerEntity killerPlayer)) {
             return ActionResult.PASS;
         }
 
-        if (!(livingEntity instanceof PlayerEntity)) {
+        if (MinecraftClient.getInstance().player == null) {
             return ActionResult.PASS;
         }
 
-        if (doesPlayerHaveMultipleCombos(player)) {
-            removeCombosForPlayer(player);
+        if (!killerPlayer.getName().equals(MinecraftClient.getInstance().player.getName())) {
             return ActionResult.PASS;
         }
 
-        Combo playerCombo = getPlayerCombo(player, entity);
+        if (!ConfigurationData.debug) {
+            if (!(entity instanceof PlayerEntity)) {
+                return ActionResult.PASS;
+            }
+        }
 
-        if (playerCombo == null) {
-            currentCombos.add(new Combo(player, livingEntity));
+        int comboLength = getComboLength(entity);
+
+        if (comboLength == 0) {
+            currentCombos.clear();
+            AutoClipClient.getLOGGER().info("New combo started for player: " + entity.getName().getString());
+            currentCombos.put(entity, comboLength + 1);
+            return ActionResult.PASS;
         } else {
-            playerCombo.setCombo(playerCombo.getCombo() + 1);
-        }
-
-        return ActionResult.PASS;
-    }
-
-    private void removeCombosForPlayer(@NotNull PlayerEntity player) {
-        for (Combo combo : currentCombos) {
-            if (combo.getPlayer().getName().equals(player.getName())) {
-                currentCombos.remove(combo);
-            }
+            AutoClipClient.getLOGGER().info("Combo continued for player: " + entity.getName().getString() + " length: " + (comboLength));
+            currentCombos.put(entity, comboLength + 1);
+            return ActionResult.PASS;
         }
     }
 
-    private boolean doesPlayerHaveMultipleCombos(@NotNull PlayerEntity player) {
-        int count = 0;
+    public int getComboLength(@NotNull Entity entity) {
 
-        for (Combo combo : currentCombos) {
-            if (combo.getPlayer().getName().equals(player.getName())) {
-                count++;
-            }
-        }
+        currentCombos.putIfAbsent(entity, 0);
 
-        return count > 1;
-    }
-
-    public @Nullable Combo getPlayerCombo(@NotNull PlayerEntity player, @NotNull Entity entity) {
-        for (Combo combo : currentCombos) {
-            if (combo.getPlayer().getName().equals(player.getName())) {
-                if (combo.getEntity().equals(entity)) {
-                    return combo;
-                }
-            }
-        }
-        return null;
-    }
-
-    public List<Combo> getCurrentCombos() {
-        return currentCombos;
+        return currentCombos.get(entity);
     }
 }

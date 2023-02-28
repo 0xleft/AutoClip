@@ -4,7 +4,7 @@ public class ConfigurationData {
 
     public static boolean enableBlockClutchClip = true;
     public static boolean enableKillClip = true;
-    public static int comboCountForClip = 5;
-
-
+    public static boolean enableComboClip = true;
+    public static int comboLengthForClip = 3;
+    public static boolean debug = false;
 }

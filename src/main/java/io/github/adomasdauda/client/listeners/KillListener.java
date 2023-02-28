@@ -2,6 +2,7 @@ package io.github.adomasdauda.client.listeners;
 
 import io.github.adomasdauda.client.AutoClipClient;
 import io.github.adomasdauda.client.ClipHelper;
+import io.github.adomasdauda.client.constants.ClipReason;
 import io.github.adomasdauda.client.data.ConfigurationData;
 import io.github.adomasdauda.client.interfaces.EntityKilledByEntityCallback;
 import io.github.adomasdauda.client.managers.PlayerComboManager;
@@ -18,12 +19,12 @@ public class KillListener implements EntityKilledByEntityCallback {
     @Override
     public ActionResult interact(LivingEntity entity, Entity killer) {
 
-        if (!(killer instanceof LivingEntity killerLivingEntity)) {
+        if (!ConfigurationData.enableKillClip) {
             return ActionResult.PASS;
         }
 
-        // check if both of them are players
-        if (!(killerLivingEntity instanceof PlayerEntity killerPlayerEntity) || !(entity instanceof PlayerEntity)) {
+        // check if both are players
+        if (!(killer instanceof PlayerEntity killerPlayerEntity)) {
             return ActionResult.PASS;
         }
 
@@ -35,14 +36,18 @@ public class KillListener implements EntityKilledByEntityCallback {
             return ActionResult.PASS;
         }
 
-        if (PlayerComboManager.getInstance().getPlayerCombo(killerPlayerEntity, entity) != null); {
-            if (PlayerComboManager.getInstance().getPlayerCombo(killerPlayerEntity, entity).getCombo() < ConfigurationData.comboCountForClip) {
-                return ActionResult.PASS;
+        if (ConfigurationData.enableComboClip) {
+            if (ConfigurationData.comboLengthForClip <= PlayerComboManager.getInstance().getComboLength(entity)) {
+                AutoClipClient.getLOGGER().info("Player killed another player: " + entity.getName().getString());
+                ClipHelper.pressClipButton(ClipReason.ENEMY_KILLED);
+            } else {
+                AutoClipClient.getLOGGER().warn("The combo was not long enough to clip length: " + PlayerComboManager.getInstance().getComboLength(entity) + " required: " + ConfigurationData.comboLengthForClip);
             }
+            return ActionResult.PASS;
         }
 
         AutoClipClient.getLOGGER().info("Player killed another player: " + entity.getName().getString());
-        ClipHelper.pressClipButton();
+        ClipHelper.pressClipButton(ClipReason.ENEMY_KILLED);
         return ActionResult.PASS;
     }
 }

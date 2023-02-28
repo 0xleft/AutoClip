@@ -8,8 +8,5 @@ import java.awt.event.KeyEvent;
 public class AutoClip implements ModInitializer {
     @Override
     public void onInitialize() {
-
-
-
     }
 }

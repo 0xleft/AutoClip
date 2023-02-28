@@ -6,12 +6,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ActionResult;
 
-public interface EntityKilledByEntityCallback {
+public interface EntityHitByEntityCallback {
 
-    Event<EntityKilledByEntityCallback> EVENT = EventFactory.createArrayBacked(EntityKilledByEntityCallback.class,
+    Event<EntityHitByEntityCallback> EVENT = EventFactory.createArrayBacked(EntityHitByEntityCallback.class,
             (listeners) -> (entity, killer) -> {
-                for (EntityKilledByEntityCallback listener : listeners) {
-                    ActionResult result = listener.interact(entity, killer);
+                for (EntityHitByEntityCallback listener : listeners) {
+                    ActionResult result = listener.onHit(entity, killer);
 
                     if(result != ActionResult.PASS) {
                         return result;
@@ -21,5 +21,5 @@ public interface EntityKilledByEntityCallback {
                 return ActionResult.PASS;
             });
 
-    ActionResult interact(LivingEntity entity, Entity killer);
+    ActionResult onHit(LivingEntity entity, Entity killer);
 }
